@@ -1,0 +1,10 @@
+{"title": "App crashes on startup with NullPointerException", "body": "After updating to v2.3, the app crashes immediately on launch. Stack trace attached.", "expected_label": "bug"}
+{"title": "How do I configure a custom API endpoint?", "body": "The docs don't mention how to override the base URL. Is this supported?", "expected_label": "question"}
+{"title": "Add dark mode support", "body": "It would be great if the UI supported a dark theme, especially for night use.", "expected_label": "enhancement"}
+{"title": "README missing installation steps for Windows", "body": "The README only documents macOS/Linux setup. Windows users have no guidance.", "expected_label": "documentation"}
+{"title": "Login button does nothing on Safari", "body": "Clicking login has no effect on Safari 17. Works fine on Chrome. No console errors visible yet.", "expected_label": "needs-repro"}
+{"title": "Memory leak when uploading large files", "body": "Memory usage climbs steadily and never drops after uploading files over 500MB repeatedly.", "expected_label": "bug"}
+{"title": "Support exporting data as CSV", "body": "Currently only JSON export is available. CSV would help with spreadsheet workflows.", "expected_label": "enhancement"}
+{"title": "Is there a rate limit on the public API?", "body": "Couldn't find rate limit info anywhere. What's the current limit per API key?", "expected_label": "question"}
+{"title": "Typo in contributing guide", "body": "CONTRIBUTING.md says 'pleae' instead of 'please' in the setup section.", "expected_label": "documentation"}
+{"title": "Intermittent 500 error on checkout", "body": "Some users report a 500 error at checkout, but I haven't been able to reproduce it consistently.", "expected_label": "needs-repro"}
