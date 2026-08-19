@@ -83,7 +83,11 @@ def run_agent(db: Session, run: AgentRun, repo: str, issue_number: int, title: s
                 slack_client.post_approval_request(run.id, name, args)
                 result = f"queued for human approval (approval_id={approval.id})"
             else:
-                result = tools.execute(name, **args)
+                try:
+                    result = tools.execute(name, **args)
+                except Exception as exc:
+                    logger.warning("tool %s failed: %s", name, exc)
+                    result = f"error: {exc}"
 
             log.result = result
             db.add(log)

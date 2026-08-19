@@ -25,7 +25,7 @@ def search_related_issues(query: str, repo: str) -> str:
         return _mock("search_related_issues", query=query, repo=repo)
     resp = httpx.get(
         f"{API_ROOT}/search/issues",
-        params={"q": f"repo:{repo} {query} in:title,body"},
+        params={"q": f"repo:{repo} is:issue {query} in:title,body"},
         headers=_headers(),
         timeout=10,
     )

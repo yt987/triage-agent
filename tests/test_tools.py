@@ -1,5 +1,16 @@
+import pytest
+
 from app.agent import tools
 from app.agent.tools import RiskTier
+from app.config import get_settings
+
+
+@pytest.fixture(autouse=True)
+def force_mock_mode(monkeypatch):
+    # get_settings() is lru_cached, so every module holds the same instance —
+    # mutating it here forces mock behavior regardless of the local .env,
+    # which may have MOCK_MODE=false and a real token set for manual testing.
+    monkeypatch.setattr(get_settings(), "mock_mode", True)
 
 
 def test_risk_tiers():
