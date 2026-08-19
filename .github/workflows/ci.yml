@@ -19,17 +19,23 @@ jobs:
   eval:
     runs-on: ubuntu-latest
     needs: test
-    # Only run the eval gate if an OpenAI key is configured as a repo secret —
-    # the agent's reasoning calls the real model, so this costs a small amount
-    # of API credit per run.
-    if: ${{ secrets.OPENAI_API_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - run: python -m app.eval.harness
+      # Only run the eval gate if an OpenAI key is configured as a repo secret —
+      # the agent's reasoning calls the real model, so this costs a small amount
+      # of API credit per run. The `secrets` context isn't available in a
+      # job-level `if:`, so the check happens here in the shell instead.
+      - name: Run eval harness
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           MOCK_MODE: "true"
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "OPENAI_API_KEY secret not set — skipping eval gate."
+            exit 0
+          fi
+          python -m app.eval.harness
