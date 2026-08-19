@@ -80,7 +80,7 @@ def run_agent(db: Session, run: AgentRun, repo: str, issue_number: int, title: s
                 )
                 db.add(approval)
                 db.flush()
-                slack_client.post_approval_request(run.id, name, args)
+                slack_client.post_approval_request(approval.id, name, args)
                 result = f"queued for human approval (approval_id={approval.id})"
             else:
                 try:

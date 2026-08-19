@@ -14,9 +14,9 @@ def _mock(action: str, **kwargs) -> str:
     return f"[mock] {action}({json.dumps(kwargs)})"
 
 
-def post_approval_request(run_id: int, tool_name: str, arguments: dict) -> str:
+def post_approval_request(approval_id: int, tool_name: str, arguments: dict) -> str:
     if settings.mock_mode or not settings.slack_bot_token:
-        return _mock("post_approval_request", run_id=run_id, tool_name=tool_name, arguments=arguments)
+        return _mock("post_approval_request", approval_id=approval_id, tool_name=tool_name, arguments=arguments)
 
     blocks = [
         {
@@ -34,14 +34,14 @@ def post_approval_request(run_id: int, tool_name: str, arguments: dict) -> str:
                     "text": {"type": "plain_text", "text": "Approve"},
                     "style": "primary",
                     "action_id": "approve",
-                    "value": str(run_id),
+                    "value": str(approval_id),
                 },
                 {
                     "type": "button",
                     "text": {"type": "plain_text", "text": "Deny"},
                     "style": "danger",
                     "action_id": "deny",
-                    "value": str(run_id),
+                    "value": str(approval_id),
                 },
             ],
         },
@@ -54,6 +54,20 @@ def post_approval_request(run_id: int, tool_name: str, arguments: dict) -> str:
     )
     resp.raise_for_status()
     return "posted approval request"
+
+
+def post_approval_resolution(tool_name: str, status: str, result: str) -> str:
+    if settings.mock_mode or not settings.slack_bot_token:
+        return _mock("post_approval_resolution", tool_name=tool_name, status=status, result=result)
+    text = f"`{tool_name}` was *{status}* — {result}"
+    resp = httpx.post(
+        "https://slack.com/api/chat.postMessage",
+        headers={"Authorization": f"Bearer {settings.slack_bot_token}"},
+        json={"channel": settings.slack_approval_channel, "text": text},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return "posted resolution"
 
 
 def page_oncall(reason: str) -> str:

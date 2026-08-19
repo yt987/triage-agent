@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Optional
+from urllib.parse import parse_qs
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ from app.agent import tools
 from app.agent.loop import run_agent
 from app.config import get_settings
 from app.db import Base, SessionLocal, engine, get_db
+from app.integrations import slack_client
 from app.models import AgentRun, Approval, ApprovalStatus, Issue
 
 logging.basicConfig(level=logging.INFO)
@@ -90,6 +92,29 @@ def approve(approval_id: int, db: Session = Depends(get_db)):
 @app.post("/approvals/{approval_id}/deny")
 def deny(approval_id: int, db: Session = Depends(get_db)):
     return _resolve_approval(approval_id, ApprovalStatus.DENIED, db)
+
+
+@app.post("/slack/interactivity")
+async def slack_interactivity(
+    request: Request,
+    x_slack_signature: Optional[str] = Header(default=None),
+    x_slack_request_timestamp: Optional[str] = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    raw = await request.body()
+    if not slack_client.verify_signature(raw, x_slack_request_timestamp or "0", x_slack_signature or ""):
+        raise HTTPException(status_code=401, detail="bad slack signature")
+
+    form = parse_qs(raw.decode())
+    payload = json.loads(form["payload"][0])
+    action = payload["actions"][0]
+    approval_id = int(action["value"])
+    status = ApprovalStatus.APPROVED if action["action_id"] == "approve" else ApprovalStatus.DENIED
+
+    resolution = _resolve_approval(approval_id, status, db)
+    approval = db.get(Approval, approval_id)
+    slack_client.post_approval_resolution(approval.tool_name, resolution["status"], resolution["result"])
+    return {"status": "ok"}
 
 
 def _resolve_approval(approval_id: int, status: ApprovalStatus, db: Session):
